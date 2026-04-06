@@ -1,0 +1,31 @@
+clear;clc;close all;
+data_dir = "/Users/wuruoyu/Documents/Granger_MSThesis/data"
+code_dir = "/Users/wuruoyu/Documents/Granger_MSThesis/now_on_Monty"
+box_dir = "TestCode";
+suffixes = ["A-hit", "AV-hit","A-miss", "AV-miss"];
+addpath(code_dir);
+addpath(box_dir);
+func_to_test = @f101_STRF;
+%% locate one set of data of different outcomes collected on the same day
+STRF_only_dates = load(fullfile(data_dir, 'other_summaries', 'STRF_dates.csv'));
+selected_date = STRF_only_dates(randi([1, length(STRF_only_dates)]));
+selected_data_dir = dir(fullfile(data_dir, "SPKbinaryMat", sprintf('*%d*.mat', selected_date)));
+
+%% run analysis for each condition
+for i = 1:length(suffixes)
+    suffix = suffixes(i);
+    data_file = dir(fullfile(data_dir, "SPKbinaryMat", sprintf('*%d*%s.mat', selected_date, suffix)));
+    if ~isempty(data_file)
+        data_path = fullfile(data_dir, "SPKbinaryMat", data_file.name);
+        data_file = load(data_path);
+        fprintf("Processing file: %s\n", data_path);
+        STRFsig = data_file.STRFsig;
+        % Call your analysis function here, e.g.:
+        results = func_to_test(data_file.data,data_file.STRFsig,data_file.snr,data_path,1);
+        results.STRF
+        results.nSTRF
+        results.all_neurons
+    else
+        fprintf("No file found for condition: %s on date: %d\n", suffix, selected_date);
+    end
+end
