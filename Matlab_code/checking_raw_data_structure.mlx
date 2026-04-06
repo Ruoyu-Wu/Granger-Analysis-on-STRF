@@ -1,0 +1,91 @@
+clear; clc;
+
+%In SPKbinaryMat
+
+data_dir = "/Users/wuruoyu/Documents/Granger_MSThesis/local/SPKbinaryMat/";
+
+%% Counting file numbers based on prefixes and suffixes
+prefixes = ["coo"];
+suffixes = ["A-hit", "AV-hit","A-miss", "AV-miss"];%"V-CR"
+n_non_misses = zeros(length(prefixes), length(suffixes));
+
+for i = 1:length(prefixes)
+    for j = 1:length(suffixes)
+        pattern = sprintf("*%s*%s*.mat", prefixes{i}, suffixes{j});%search pattern (e.g., "Vid*A-hit*.mat")
+        
+        % Search the directory
+        files = dir(fullfile(data_dir, pattern));
+        
+        % Store the count
+        n_non_misses(i,j) = length(files);
+        % fprintf('%s + %s: %d files\n', prefixes{i}, suffixes{j}, n_non_misses(i,j));
+    end
+end
+
+resultsTable_non_misses = array2table(n_non_misses, 'VariableNames', matlab.lang.makeValidName(suffixes), 'RowNames', matlab.lang.makeValidName(prefixes));
+disp(' ');
+disp(resultsTable_non_misses);
+
+all_files = {};
+
+for j = 1:length(suffixes)
+    condition = replace(suffixes{j}, "-", "_");
+    pattern = sprintf("*%s*.mat", suffixes{j});
+    files = dir(fullfile(data_dir, pattern));
+    all_files.(condition) = files;
+end
+
+
+
+dates = struct();
+
+
+for j = 1:length(suffixes)
+    condition = replace(suffixes{j}, "-", "_");
+    files = all_files.(condition);
+    dates.both.(condition) = {};
+    dates.STRF.(condition) = {};
+    dates.nSTRF.(condition) = {};
+
+    for file_idx = 1:length(files)
+        file = files(file_idx);
+        
+        file_content = load(fullfile(file.folder, file.name));
+        STRFsig = file_content.STRFsig;
+        
+        name_parts = split(file.name,"_");
+        file_date = name_parts{2}
+        
+        has_STRF = sum(STRFsig) ~= 0;
+        has_nonSTRF = sum(~STRFsig) ~= 0;
+        
+        if has_STRF && has_nonSTRF
+            dates.both.(condition){end+1} = file_date;
+            
+        elseif has_STRF && ~has_nonSTRF
+            dates.STRF.(condition){end+1} = file_date;
+            
+        elseif ~has_STRF && has_nonSTRF
+            dates.nSTRF.(condition){end+1} = file_date;
+        end
+    end
+end
+
+both_dates = {dates.both.A_hit,dates.both.AV_hit,dates.both.A_miss,dates.both.AV_miss};
+isequal(both_dates{:})
+
+STRF_dates = {dates.STRF.A_hit,dates.STRF.AV_hit,dates.STRF.A_miss,dates.STRF.AV_miss};
+isequal(STRF_dates{:})
+
+nSTRF_dates = {dates.nSTRF.A_hit,dates.nSTRF.AV_hit,dates.nSTRF.A_miss,dates.nSTRF.AV_miss};
+isequal(nSTRF_dates{:})
+
+% % verified STRFsig stays the same across different conditions
+
+
+writecell(dates.both.A_hit,"both_dates.csv")
+writecell(dates.STRF.A_hit,"STRF_dates.csv")
+writecell(dates.nSTRF.A_hit,"nSTRF_dates.csv")
+
+which("both_dates.csv")
+

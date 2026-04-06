@@ -20,8 +20,12 @@ for i = 1:length(suffixes)
         data_file = load(data_path);
         fprintf("Processing file: %s\n", data_path);
         STRFsig = data_file.STRFsig;
-        % Call your analysis function here, e.g.:
+
+        % Call test analysis function here:
+        tic;
         results = func_to_test(data_file.data,data_file.STRFsig,data_file.snr,data_path,1);
+        toc;
+
         results.STRF
         results.nSTRF
         results.all_neurons
@@ -29,3 +33,50 @@ for i = 1:length(suffixes)
         fprintf("No file found for condition: %s on date: %d\n", suffix, selected_date);
     end
 end
+
+%>> results
+
+% results = 
+
+%   struct with fields:
+
+%              n_STRF: 10
+%             n_nSTRF: 0
+%      n_total_trials: 230
+%     n_neurons_total: 10
+%           STRF_self: {[1x1 struct]}
+%          nSTRF_self: []
+%         all_neurons: {[1x1 struct]}
+
+% >> results.STRF_self
+
+% ans =
+
+%   1x1 cell array
+
+%     {1x1 struct}
+
+% >> results.STRF_self{1}
+
+% ans = 
+
+%   struct with fields:
+
+%      Phi: [10x10 double]
+%     Psi2: [10x10 double]
+
+% >> results.STRF_self{1}.Psi2
+
+% ans =
+
+%      1     1     1     0     0     0     0     1     1     0
+%      1     1     1     1     0     1     0     1     0     0
+%      1     1     1     1     0    -1     0     1     1     1
+%      1     1     1     1     1     1     0     0     0     1
+%      0     1     1     1     1     1     0     0     0     0
+%      0     1     1     1     1     1     0     0     0     0
+%      0     0     0     0     0     0     0     0     0     0
+%      1     0     1     0     0     0     0     1     0     0
+%      1     0     0     0     0     0     0     0     0     0
+%      0     0     1     1    -1     0     0     0     0    -1
+
