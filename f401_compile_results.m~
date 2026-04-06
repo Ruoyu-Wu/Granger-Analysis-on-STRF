@@ -1,0 +1,108 @@
+function compiled_results = f401_compile_results(results_path,compiled_path)
+% Compile connectivity density results from STRF analysis files
+% Input:
+%   results_path - path to directory containing result files
+% Output:
+%   compiled_results - struct with compiled densities for each condition
+
+arguments
+    results_path = "/data/by-user/Ruoyu/results/results1";
+    compiled_path = "/data/by-user/Ruoyu/results/compiled/"
+end
+
+addpath(genpath(results_path));
+stim_conditions = ["A-hit", "AV-hit", "A-miss", "AV-miss"]; % "V-CR" commented out
+analysis_cond = "on_STRF";
+addpath(genpath(compiled_path));
+compiled_results = struct();
+
+%% Process each stimulus condition
+for s = 1:length(stim_conditions)
+    stim = stim_conditions{s};
+    pattern = sprintf('*%s*%s*.mat', stim, analysis_cond);
+    files = dir(fullfile(results_path, pattern));
+    
+    if isempty(files)
+        warning('No files found for condition: %s with pattern: %s', stim, pattern);
+        continue;
+    end
+    
+    fprintf('Processing condition: %s (%d files found)\n', stim, length(files));
+    
+    % Initialize arrays for this condition
+    n_files = length(files);
+    strf_densities = zeros(n_files, 1);
+    nstrf_densities = zeros(n_files, 1);
+    all_densities = zeros(n_files, 1);
+    file_names = cell(n_files, 1);
+    
+    %% Process each file for this condition
+    for f = 1:n_files
+        file_path = fullfile(files(f).folder, files(f).name);
+        file_names{f} = files(f).name;
+        
+        try
+            % Load the file
+            data_file = load(file_path);
+            data = data_file.file_results;
+            % Extract the relevant fields (handling different possible struct names)
+            if isfield(data, 'STRF_self')
+                psi_matrix = d
+            elseif isfield(data, 'nSTRF_self')
+                psi_matrix = data.nSTRF_self;
+            elseif isfield(data, 'all_neurons')
+                psi_matrix = data.all_neurons;
+            else
+                warning('No connectivity matrix found in file: %s', files(f).name);
+                continue;
+            end
+            
+            % Calculate connectivity density using absolute values
+            strf_densities(f) = calculate_connectivity_density(psi_matrix);
+            nstrf_densities(f) = calculate_connectivity_density(psi_matrix);
+            all_densities(f) = calculate_connectivity_density(psi_matrix);
+            
+        catch ME
+            warning('Error processing file %s: %s', files(f).name, ME.message);
+            strf_densities(f) = NaN;
+            nstrf_densities(f) = NaN;
+            all_densities(f) = NaN;
+        end
+    end
+    
+    %% Store compiled results for this condition
+    compiled_results.(matlab.lang.makeValidName(stim)) = struct(...
+        'file_names', {file_names}, ...
+        'STRF_density', strf_densities, ...
+        'nSTRF_density', nstrf_densities, ...
+        'all_density', all_densities, ...
+        'n_files', n_files, ...
+        'mean_STRF', nanmean(strf_densities), ...
+        'mean_nSTRF', nanmean(nstrf_densities), ...
+        'mean_all', nanmean(all_densities), ...
+        'sem_STRF', nanstd(strf_densities)/sqrt(sum(~isnan(strf_densities))), ...
+        'sem_nSTRF', nanstd(nstrf_densities)/sqrt(sum(~isnan(nstrf_densities))), ...
+        'sem_all', nanstd(all_densities)/sqrt(sum(~isnan(all_densities))));
+    
+    %% Display summary statistics
+    fprintf('Condition %s summary:\n', stim);
+    fprintf('  STRF density: mean=%.4f, SEM=%.4f, n=%d\n', ...
+        compiled_results.(matlab.lang.makeValidName(stim)).mean_STRF, ...
+        compiled_results.(matlab.lang.makeValidName(stim)).sem_STRF, ...
+        sum(~isnan(strf_densities)));
+    fprintf('  nSTRF density: mean=%.4f, SEM=%.4f, n=%d\n', ...
+        compiled_results.(matlab.lang.makeValidName(stim)).mean_nSTRF, ...
+        compiled_results.(matlab.lang.makeValidName(stim)).sem_nSTRF, ...
+        sum(~isnan(nstrf_densities)));
+    fprintf('  All density: mean=%.4f, SEM=%.4f, n=%d\n', ...
+        compiled_results.(matlab.lang.makeValidName(stim)).mean_all, ...
+        compiled_results.(matlab.lang.makeValidName(stim)).sem_all, ...
+        sum(~isnan(all_densities)));
+end
+
+%% Save compiled results
+save_compiled = fullfile(compiled_path, 'compiled_STRF_results.mat');
+save(save_compiled, 'compiled_results');
+fprintf('\nCompiled results saved to: %s\n', save_compiled);
+
+end
