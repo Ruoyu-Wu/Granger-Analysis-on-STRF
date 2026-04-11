@@ -2,29 +2,29 @@ clear; clc;
 
 %In SPKbinaryMat
 
-data_dir = "/Users/wuruoyu/Documents/Granger_MSThesis/local/SPKbinaryMat/";
+data_dir = "/Users/wuruoyu/Documents/Granger_MSThesis/data/SPKbinaryMat";
 
 %% Counting file numbers based on prefixes and suffixes
 prefixes = ["coo"];
 suffixes = ["A-hit", "AV-hit","A-miss", "AV-miss"];%"V-CR"
-n_non_misses = zeros(length(prefixes), length(suffixes));
+% n_non_misses = zeros(length(prefixes), length(suffixes));
 
-for i = 1:length(prefixes)
-    for j = 1:length(suffixes)
-        pattern = sprintf("*%s*%s*.mat", prefixes{i}, suffixes{j});%search pattern (e.g., "Vid*A-hit*.mat")
+% for i = 1:length(prefixes)
+%     for j = 1:length(suffixes)
+%         pattern = sprintf("*%s*%s*.mat", prefixes{i}, suffixes{j});%search pattern (e.g., "Vid*A-hit*.mat")
         
-        % Search the directory
-        files = dir(fullfile(data_dir, pattern));
+%         % Search the directory
+%         files = dir(fullfile(data_dir, pattern));
         
-        % Store the count
-        n_non_misses(i,j) = length(files);
-        % fprintf('%s + %s: %d files\n', prefixes{i}, suffixes{j}, n_non_misses(i,j));
-    end
-end
+%         % Store the count
+%         n_non_misses(i,j) = length(files);
+%         % fprintf('%s + %s: %d files\n', prefixes{i}, suffixes{j}, n_non_misses(i,j));
+%     end
+% end
 
-resultsTable_non_misses = array2table(n_non_misses, 'VariableNames', matlab.lang.makeValidName(suffixes), 'RowNames', matlab.lang.makeValidName(prefixes));
-disp(' ');
-disp(resultsTable_non_misses);
+% resultsTable_non_misses = array2table(n_non_misses, 'VariableNames', matlab.lang.makeValidName(suffixes), 'RowNames', matlab.lang.makeValidName(prefixes));
+% disp(' ');
+% disp(resultsTable_non_misses);
 
 all_files = {};
 
@@ -34,6 +34,17 @@ for j = 1:length(suffixes)
     files = dir(fullfile(data_dir, pattern));
     all_files.(condition) = files;
 end
+
+all_dates = {};
+for file_id  = 1:length(all_files.A_hit)
+    file_name = all_files.A_hit(file_id).name;
+    name_parts = split(file_name,"_");
+    file_date = name_parts{2};
+    all_dates{end+1} = file_date;
+end
+
+writecell(all_dates', "all_dates.csv")
+
 
 
 
@@ -88,4 +99,3 @@ writecell(dates.STRF.A_hit,"STRF_dates.csv")
 writecell(dates.nSTRF.A_hit,"nSTRF_dates.csv")
 
 which("both_dates.csv")
-
