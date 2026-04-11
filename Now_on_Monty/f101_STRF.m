@@ -2,11 +2,62 @@ function file_results = f101_STRF(data, STRFsig,snr,filename,rep)
 %(data,STRFsig,snr,files(f).name,rep)
 % Perform subsampling analysis on a single file, considering only
 % STRF/nSTRF grouping, SNR conditions ignored
+
 % Input:
 %   data: data matrix [neurons x time x trials]
 %   STRFsig: binary vector indicating STRF-significant neurons (1) and non-STRF neurons (0)
 %   filename: name of the file being analyzed
-% Returns structured results for the file
+%   rep: number of repetitions for causal analysis (completed rep = 2 and verified that results are deterministic)
+
+
+% Output:
+% Returns struct with following fields
+
+% results = 
+
+%   struct with fields:
+
+%              n_STRF: 10
+%             n_nSTRF: 0
+%      n_total_trials: 230
+%     n_neurons_total: 10
+%           STRF_self: {[1x1 struct]}
+%          nSTRF_self: []
+%         all_neurons: {[1x1 struct]}
+
+% >> results.STRF_self
+
+% ans =
+
+%   1x1 cell array
+
+%     {1x1 struct}
+
+% >> results.STRF_self{1}
+
+% ans = 
+
+%   struct with fields:
+
+%      Phi: [10x10 double]
+%     Psi2: [10x10 double]
+
+% >> results.STRF_self{1}.Psi2
+
+% ans =
+
+%      1     1     1     0     0     0     0     1     1     0
+%      1     1     1     1     0     1     0     1     0     0
+%      1     1     1     1     0    -1     0     1     1     1
+%      1     1     1     1     1     1     0     0     0     1
+%      0     1     1     1     1     1     0     0     0     0
+%      0     1     1     1     1     1     0     0     0     0
+%      0     0     0     0     0     0     0     0     0     0
+%      1     0     1     0     0     0     0     1     0     0
+%      1     0     0     0     0     0     0     0     0     0
+%      0     0     1     1    -1     0     0     0     0    -1
+
+
 
 % Identify STRF and nSTRF neurons
 STRF_idx = find(STRFsig == 1);

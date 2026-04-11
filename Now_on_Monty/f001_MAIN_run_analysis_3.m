@@ -8,10 +8,10 @@ function f001_MAIN_run_analysis_3(data_dir,results_dir,granger_code_path,Functio
 %   Functions_path: Path to helper functions
 
 arguments
- data_dir = "/data/by-user/Ruoyu/SPKbinaryMat/";
- results_dir = "/data/by-user/Ruoyu/results";
- granger_code_path = "/data/by-user/Ruoyu/Granger_Code/";
- Functions_path = "/data/by-user/Ruoyu/Functions/";
+ data_dir = "/Users/wuruoyu/Documents/Granger_MSThesis/data/SPKbinaryMat";
+ results_dir = "/Users/wuruoyu/Documents/Granger_MSThesis/data/unverified/analysis_temporary";
+ granger_code_path = "TestCode";
+ Functions_path = "Now_on_Monty";
 end
 
 addpath(genpath(granger_code_path));
@@ -22,7 +22,6 @@ addpath(genpath(Functions_path));
 
 % 1. which stimuli conditions to include:
 suffixes = ["AV-hit","A-hit", "A-miss", "AV-miss"];%,"V-CR"
-% suffixes = ["AV-hit","A-hit"];
 
 % 2. which sample size adjustment method to use:
 analysis_spec = @f101_STRF;
@@ -77,12 +76,7 @@ for s = 1:length(suffixes)
         
         % Run analysis for this file
           file_results = analysis_spec(data,STRFsig,snr,files(f).name,rep);
-        
-        % Store results
-%         results.(sprintf('suffix_%s', strrep(suffix, '-', '_'))).(sprintf('file_%d', f)) = file_results;
-%         results.(sprintf('suffix_%s', strrep(suffix, '-', '_'))).(sprintf('file_%d', f)).filename = files(f).name;
-%         suffix_field = strrep(suffix, '-', '_');
-%         results.(suffix_field).(sprintf('file_%d', f)).filepath = filepath;
+
         % Save final results
         results_name = sprintf("%s_%s_results.mat",extractBefore(files(f).name,'.mat'), analysis_name);
         save(fullfile(results_dir,results_name), 'file_results');
